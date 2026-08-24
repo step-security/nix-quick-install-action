@@ -18,12 +18,17 @@ jobs:
         os: ${{ github.actor == 'dependabot[bot]' && fromJSON('["ubuntu-latest"]') || fromJSON('["ubuntu-22.04", "ubuntu-24.04-arm", "macos-15", "macos-15-intel"]') }}
     runs-on: ${{ matrix.os }}
     steps:
-      - uses: actions/checkout@v7
+      - name: Harden the runner (Audit all outbound calls)
+        uses: step-security/harden-runner@v2
+        with:
+          egress-policy: audit
+
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
       - uses: ./
         with:
           nix_archives_url: https://github.com/nixbuild/nix-quick-install-action/releases/download/v35
           nix_version: 2.34.7
-      - uses: cachix/cachix-action@v17
+      - uses: cachix/cachix-action@5f2d7c5294214f71b873db4b969586b980625e71 # v17
         with:
           name: nixos-quick-install-action
       - name: Build nix archives
@@ -31,7 +36,7 @@ jobs:
         run: |
           nix build .#nix-archives
           echo "result=$(readlink result)" >> "$GITHUB_OUTPUT"
-      - uses: actions/upload-artifact@v7
+      - uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
         with:
           name: nix-archives-${{ runner.os }}-${{ runner.arch }}
           path: ${{ steps.build-nix-archives.outputs.result }}/
@@ -46,8 +51,13 @@ jobs:
         exclude: "${{ github.actor != 'dependabot[bot]' && fromJSON('[{\"os\": \"ubuntu-24.04-arm\", \"nix_version\": \"2.3.18\"}]') || fromJSON('[]') }}"
     runs-on: ${{ matrix.os }}
     steps:
-      - uses: actions/checkout@v7
-      - uses: actions/download-artifact@v8
+      - name: Harden the runner (Audit all outbound calls)
+        uses: step-security/harden-runner@v2
+        with:
+          egress-policy: audit
+
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+      - uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c # v8.0.1
         id: nix-archives
         with:
           name: nix-archives-${{ runner.os }}-${{ runner.arch }}
